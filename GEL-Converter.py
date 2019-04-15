@@ -50,15 +50,12 @@ elif converttype == 'lines': #This will be smaller, but still at least image wid
                 currentY = row
                 currentColor = newColor
                 pygame.display.flip()
-                #sleep(.05)
 
 
-#fh = open(filename.split('.')[0] + '.txt', 'w')
-#fh.write(generatedText)
-#fh.close()
+
 textlines = generatedText.split("\n")
 savedLines = {}
-trimtext = "SIZE: " + str(width) + ", " + str(height) + "\n"
+trimtext = "SIZE: " + str(width) + ", " + str(height) + "\nTYPE: converted"
 trimRGB = '255,255,255'
 for line in range(0, len(textlines)):
     if textlines[line][0:4] == 'RGB:':
@@ -78,4 +75,4 @@ trimtext = trimtext.replace("RGB: 255, 255, 255", "") #Removes spurious RGB call
 fh = open(filename.split('.')[0] + '.txt', 'w')
 fh.write(trimtext)
 fh.close()
-exit()
+#exit()
