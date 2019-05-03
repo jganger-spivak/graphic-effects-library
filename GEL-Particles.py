@@ -10,7 +10,9 @@ text = fh.read()
 fh.close()
 textlines = text.split("\n")
 particleList = []
+mouseFollow = False
 currentColor = pygame.Color(255, 255, 255)
+
 class Particle(RenderObject):
     def __init__(self, tex):
         RenderObject.__init__(self, tex[0].x, tex[0].y, tex[0].width, tex[0].height)
@@ -23,6 +25,11 @@ class Particle(RenderObject):
         pygame.draw.rect(screen, self.color, pygame.Rect(self.x, self.y, self.width, self.height))
         self.handleVelocity(False)
         self.keepInBounds()
+        if mouseFollow:
+            mxy = pygame.mouse.get_pos()
+            mx = mxy[0]
+            my = mxy[1]
+            self.push((mx - self.x) / 1000, (my - self.y) / 1000)
 def particleLine(line):
     if not line == "":
       if line[0:5] == "SIZE:":

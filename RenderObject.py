@@ -49,3 +49,9 @@ class RenderObject:
             self.vx *= -1
         if yb:
             self.vy *= -1
+    def camera(self, renderList):
+        pass
+    def action(self):
+        pass
+    def lights(self):
+        pass

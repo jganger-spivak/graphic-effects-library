@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 import pygame
 
 pygame.init()
@@ -7,6 +8,7 @@ class Application(tk.Frame):
         super().__init__(master)
         self.master = master
         self.x = tk.IntVar()
+        self.loadedText = 'SIZE: ' + str(width) + ', ' + str(height) + '\n'
         self.y = tk.IntVar()
         self.x.set(0)
         self.y.set(0)
@@ -33,7 +35,7 @@ class Application(tk.Frame):
         self.displaycolor = '#FF0000'
         self.pack()
         self.create_widgets()
-        self.screen = pygame.display.set_mode((self.winwidth, self.winheight))
+        self.screen = pygame.display.set_mode((int(self.winwidth), int(self.winheight)))
         pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect(0, 0, self.winwidth, self.winheight))
         pygame.display.flip()
     def create_widgets(self):
@@ -113,6 +115,7 @@ class Application(tk.Frame):
     def add_element(self):
         self.updateValues()
         if self.selectedcmd.get() == 'RECT':
+            self.loadedtext += 'RGB: ' + str(self.rvalue.get()) + ', ' + str(self.gvalue.get()) + ', ' + str(self.bvalue.get()) + '\nRECT: (' + str(self.x.get()) + ', ' + str(self.y.get()) + ', ' + str(self.width.get()) + ', '  + str(self.height.get()) + ')\n'
             pygame.draw.rect(self.screen, self.color, pygame.Rect(self.x.get(), self.y.get(), self.width.get(), self.height.get()))
         if self.selectedcmd.get() == 'RGB':
             self.color = pygame.Color(self.rvalue.get(), self.gvalue.get(), self.bvalue.get())
@@ -121,8 +124,164 @@ class Application(tk.Frame):
         if self.selectedcmd.get() == 'CIRCLE':
             pass
         pygame.display.flip()
+    def save(self):
+        raise NotImplementedError
+    def load(self):
+        filepath = filedialog.askopenfilename()
+
+    
+    def compileLines(self, textlines, scalar):
+      currentColor = pygame.Color(255, 255, 255)
+      
+      print('CompileLine run')
+      maxwidth = 0
+      maxheight = 0
+      for line in textlines:
+        if not line == "":
+            if line[0:4] == "RGB:":
+              datavals = line.replace(" ", "").replace("RGB:", "").split(",")
+              currentColor.r = int(datavals[0])
+              currentColor.g = int(datavals[1])
+              currentColor.b = int(datavals[2])
+            elif line[0:5] == "RGBA:":
+              datavals = line.replace(" ", "").replace("RGBA:", "").split(",")
+              currentColor.r = int(datavals[0])
+              currentColor.g = int(datavals[1])
+              currentColor.b = int(datavals[2])
+              currentColor.a = int(datavals[3])
+            elif line[0:5] == "RECT:":
+              cleanline = line.replace("(", "").replace(")", "").replace(" ", "").replace("x", ",").replace("RECT:", "")
+              datavals = cleanline.split(",")
+              x = int(datavals[0])
+              y = int(datavals[1])
+              width = int(datavals[2])
+              height = int(datavals[3])
+              pygame.draw.rect(self.screen, currentColor, pygame.Rect(x*scalar, y*scalar, width*scalar, height*scalar))
+              pygame.display.flip()
+              if (y + height) > maxheight:
+                maxheight = y+height
+              if (x + width) > maxwidth:
+                maxwidth = x+width
+            elif line[0:5] == "GRAD:":
+              cleanline = line.replace("(", "").replace(")", "").replace(" ", "").replace("x", ",").replace("GRAD:", "")
+              datavals = cleanline.split(",")
+              x = int(datavals[0])
+              y = int(datavals[1])
+              width = int(datavals[2])
+              height = int(datavals[3])
+              if (y + height) > maxheight:
+                maxheight = y+height
+              if (x + width) > maxwidth:
+                maxwidth = x+width
+              direction = datavals[4]
+              endColor = pygame.Color(255, 255, 255)
+              gradColor = pygame.Color(currentColor.r, currentColor.g, currentColor.b)
+              endColor.r = int(datavals[5])
+              endColor.g = int(datavals[6])
+              endColor.b = int(datavals[7])
+              try:
+                endColor.a = int(datavals[8])
+                if direction == 'side':
+                  
+                  diffred = currentColor.r - endColor.r
+                  diffgreen = currentColor.g - endColor.g
+                  diffblue = currentColor.b - endColor.b
+                  diffalpha = currentColor.a - endColor.a
+                  
+                  rstep = int(diffred / width)
+                  gstep = int(diffgreen / width)
+                  bstep = int(diffblue / width)
+                  astep = int(diffalpha / width)
+                  for line in range(0, int(width*scalar)):
+                    pygame.draw.rect(self.screen, gradColor, pygame.Rect((x+line)*scalar, y*scalar, scalar, height*scalar))
+                    pygame.display.flip()
+                    if endColor.r > currentColor.r:
+                      gradColor.r += abs(rstep)
+                    else:
+                      gradColor.r -= rstep
+                    
+                    if endColor.g > currentColor.g:
+                      gradColor.g += abs(gstep)
+                    else:
+                      gradColor.g -= gstep
+                    
+                    if endColor.b > currentColor.b:
+                      gradColor.b += abs(bstep)
+                    else:
+                      gradColor.b -= bstep
+
+                    if endColor.a > currentColor.a:
+                      gradColor.a += abs(astep)
+                    else:
+                      gradColor.a -= astep
+                    
+                    
+                elif direction == 'down':
+                  raise NotImplementedError
+                elif direction == 'circle':
+                  diffred = currentColor.r - endColor.r
+                  diffgreen = currentColor.g - endColor.g
+                  diffblue = currentColor.b - endColor.b
+                  diffalpha = currentColor.a - endColor.a
+                  
+                  rstep = int(diffred / width)
+                  gstep = int(diffgreen / width)
+                  bstep = int(diffblue / width)
+                  astep = int(diffalpha / width)
+                  for line in range(0, int((width*scalar)/2)):
+                    pygame.draw.circle(self.screen, gradColor, (int(x*scalar), int(y*scalar)), abs(line-int((width*scalar)/2)), int(scalar))
+                    pygame.display.flip()
+                    print(gradColor)
+                    if endColor.r > currentColor.r:
+                      gradColor.r += abs(rstep)
+                    else:
+                      gradColor.r -= rstep
+                    
+                    if endColor.g > currentColor.g:
+                      gradColor.g += abs(gstep)
+                    else:
+                      gradColor.g -= gstep
+                    
+                    if endColor.b > currentColor.b:
+                      gradColor.b += abs(bstep)
+                    else:
+                      gradColor.b -= bstep
+
+                    if endColor.a > currentColor.a:
+                      gradColor.a += abs(astep)
+                    else:
+                      gradColor.a -= astep
+              except IndexError:
+                raise NotImplementedError
+            elif line[0:7] == "CIRCLE:":
+              cleanline = line.replace("(", "").replace(")", "").replace(" ", "").replace("CIRCLE:", "")
+              datavals = cleanline.split(",")
+              x = int(datavals[0])
+              y = int(datavals[1])
+              radius = int(datavals[2])
+              if (y + radius*2) > maxheight:
+                maxheight = y+radius*2
+              if (x + radius*2) > maxwidth:
+                maxwidth = x+radius*2
+              pygame.draw.circle(self.screen, currentColor, (int(x*scalar), int(y*scalar)), radius*scalar)
+              pygame.display.flip()
+      print('CompileLine finished')
 
 root = tk.Tk()
-app = Application(master=root, width=int(input('Enter width:')), height=int(input('Enter height:')))
+fileloaded = False
+if input('Load file? Y/N').upper() == 'Y':
+    scalar = float(input('Please enter scale value, or 1 for no scaling: '))
+    fh = open(filedialog.askopenfilename())
+    text = fh.read()
+    width = int(int(text.split('\n')[0].replace('SIZE:', '').split(',')[0]) * scalar)
+    height = int(int(text.split('\n')[0].replace('SIZE:', '').split(',')[1]) * scalar)
+    app = Application(master=root, width=width, height=height)
+    app.loadedText = text
+    text = '' #Garbage collection woo!
+    app.compileLines(app.loadedText, scalar)
+    pygame.display.flip()
+    
+else:
+    app = Application(master=root, width=int(input('Enter width:')), height=int(input('Enter height:')))
 app.mainloop()
 pygame.quit()
