@@ -3,26 +3,37 @@ from zipfile import *
 from time import sleep
 
 
-def compressLines(genText):
+def compressLines(genText, rle=False):
     lastPercent = '0%'
     textlines = genText.split("\n")
     savedLines = {}
-    trimtext = "SIZE: " + str(width) + ", " + str(height) + "\nTYPE: converted"
+    if rle:
+        trimtext = "SIZE:" + str(width) + "," + str(height) + "\nTYPE:RLE\n"
+    else:
+        trimtext = "SIZE: " + str(width) + ", " + str(height) + "\nTYPE: converted\n"
     trimRGB = '255,255,255'
     for line in range(0, len(textlines)):
         if not str((line/len(textlines))*100).split('.')[0] + '%' == lastPercent:
             lastPercent = str((line/len(textlines))*100).split('.')[0] + '%'
             print(lastPercent)
         if textlines[line][0:4] == 'RGB:':
-            trimRGB = textlines[line]
+            trimRGB = textlines[line].replace("RGB:", "C").replace(" ", "")
         elif textlines[line][0:5] == 'RECT:':
             try:
-                savedLines[trimRGB] += textlines[line] + "\n"
+                if rle:
+                    savedLines[trimRGB] += textlines[line].replace("(", "").replace(")", "").replace("RECT:", "RT").replace(" ", "") + "\n"
+                else:
+                    savedLines[trimRGB] += textlines[line] + "\n"
             except KeyError:
                 savedLines[trimRGB] = ''
-                savedLines[trimRGB] += textlines[line] + "\n"
+                if rle:
+                    savedLines[trimRGB] += textlines[line].replace("(", "").replace(")", "").replace("RECT:", "RT").replace(" ", "") + "\n"
+                else:
+                    savedLines[trimRGB] += textlines[line] + "\n"
 
     savedLines['RGB: 255, 255, 255'] = '' #Should remove all white
+    if rle:
+        savedLines['C 255, 255, 255'] = ''
     print(str(len(savedLines.items())) + ' colors')
     allColors = len(savedLines.items())
     count = 0
@@ -34,6 +45,7 @@ def compressLines(genText):
         trimtext += color[1]
         count += 1
     trimtext = trimtext.replace("RGB: 255, 255, 255", "") #Removes spurious RGB call
+    trimtext = trimtext.replace("C 255, 255, 255", "")
     return trimtext
 
 
@@ -113,6 +125,6 @@ fh.close()
 input('Image scanning and initial save done. Press enter to optimize and save')
 
 fh = open(filename.split('.')[0] + '.txt', 'w')
-fh.write(compressLines(generatedText))
+fh.write(compressLines(generatedText, True))
 fh.close()
 #exit()

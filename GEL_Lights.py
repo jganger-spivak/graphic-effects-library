@@ -25,7 +25,7 @@ def pointlight(surf, plpos, intensity, radius):
 if __name__ == "__main__":
     pygame.init()
     scalar = 5
-    screen = pygame.display.set_mode((80*scalar, 80*scalar), depth=32)
+    screen = pygame.display.set_mode((80*scalar, 80*scalar))
     mapsurf = pygame.Surface((80, 80))
     basesurf = pygame.Surface((80, 80))
     pygame.draw.rect(basesurf, (0, 0, 0), (0, 0, 80, 80))

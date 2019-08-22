@@ -200,7 +200,7 @@ def compileLines(textlines, destination):
             maxwidth = x+radius*2
           pygame.draw.circle(destination, currentColor, (x, y), radius*scalar)
       
-def colorCompileText(argtextlines):
+def colorCompileText(argtextlines, rle=False):
   savedLines = {}
   trimRGB = '255,255,255'
   fastcomp = False
@@ -209,9 +209,9 @@ def colorCompileText(argtextlines):
     if not str((line/len(argtextlines))*100).split('.')[0] + '%' == lastPercent:
             lastPercent = str((line/len(argtextlines))*100).split('.')[0] + '%'
             print(lastPercent)
-    if argtextlines[line][0:4] == 'RGB:':
+    if argtextlines[line][0:4] == 'RGB:' or argtextlines[line][0:1] == 'C':
       trimRGB = argtextlines[line]
-    elif argtextlines[line][0:5] == 'RECT:':
+    elif argtextlines[line][0:5] == 'RECT:' or argtextlines[line][0:2] == 'RT':
       try:
           savedLines[trimRGB] += argtextlines[line] + "\n"
       except KeyError:
@@ -224,12 +224,20 @@ def colorCompileText(argtextlines):
     if not str((count/numColors)*100).split('.')[0] + '%' == lastPercent:
             lastPercent = str((count/numColors)*100).split('.')[0] + '%'
             print(lastPercent)
-    datavals = color[0].replace(" ", "").replace("RGB:", "").replace("\n", "").split(",")
+    if rle:
+        datavals = color[0].replace(" ", "").replace("C", "").replace("\n", "").split(",")
+    else:
+        datavals = color[0].replace(" ", "").replace("RGB:", "").replace("\n", "").split(",")
+
+
     currentColor.r = int(datavals[0])
     currentColor.g = int(datavals[1])
     currentColor.b = int(datavals[2])
     for rectangle in color[1].split("\n"):
-      cleanline = rectangle.replace("(", "").replace(")", "").replace(" ", "").replace("x", ",").replace("RECT:", "")
+      if rle:
+        cleanline = rectangle.replace("(", "").replace(")", "").replace(" ", "").replace("x", ",").replace("RT", "")
+      else:
+        cleanline = rectangle.replace("(", "").replace(")", "").replace(" ", "").replace("x", ",").replace("RECT:", "")
       datavals = cleanline.split(",")
       if not datavals[0] == '':
         x = int(datavals[0])
@@ -283,12 +291,19 @@ for i in range(0, len(textlines)):
       filetype = datavals
       if filetype == 'converted':
         print('Alt compile method used')
-        colorCompileText(textlines)
+        colorCompileText(textlines, False)
         pygame.display.flip()
         break
       elif filetype == 'multi':
         print('Multi-feature image detected')
         pass
+      elif filetype == 'RLE':
+        print('RLE compressed file detected')
+        colorCompileText(textlines, True)
+        pygame.display.flip()
+        break
+      else:
+        print("Unknown type")
 if filetype == 'manual':
   print(compileLines(textlines, screen))
   pygame.display.flip()
