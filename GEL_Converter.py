@@ -1,7 +1,6 @@
 import pygame
-from zipfile import *
 from time import sleep
-
+import lzma
 
 def compressLines(genText, rle=False):
     lastPercent = '0%'
@@ -48,6 +47,28 @@ def compressLines(genText, rle=False):
     trimtext = trimtext.replace("C 255, 255, 255", "")
     return trimtext
 
+def text2bytes(text, width, height):
+    finalbytes = bytearray()
+    finalbytes += width.to_bytes(2, byteorder='big')
+    finalbytes += height.to_bytes(2, byteorder='big')
+
+    for line in text.split("\n"):
+        if len(line) == 0:
+            continue
+        if line[0] == 'C':
+            finalbytes += b'C'
+            r = int(line.replace('C', '').split(',')[0]).to_bytes(1, byteorder='big')
+            g = int(line.replace('C', '').split(',')[1]).to_bytes(1, byteorder='big')
+            b = int(line.replace('C', '').split(',')[2]).to_bytes(1, byteorder='big')
+            finalbytes += (r + g + b)
+        if line[0:2] == 'RT':
+            finalbytes += b'R'
+            x = int(line.replace('RT', '').replace('x', ',').split(',')[0]).to_bytes(2, byteorder='big')
+            y = int(line.replace('RT', '').replace('x', ',').split(',')[1]).to_bytes(2, byteorder='big')
+            width = int(line.replace('RT', '').replace('x', ',').split(',')[2]).to_bytes(2, byteorder='big')
+            height = int(line.replace('RT', '').replace('x', ',').split(',')[3]).to_bytes(2, byteorder='big')
+            finalbytes += (x + y + width + height)
+    return finalbytes
 
 converttype = 'lines'
 pygame.init()
@@ -62,7 +83,7 @@ if filename.split('.')[1] == 'txt':
         height = int(text.split('\n')[0].replace('SIZE:', '').split(',')[1])
         fh.close()
         fh = open('_' + filename.split('.')[0] + '.txt', 'w')
-        fh.write(compressLines(text))
+        fh.write(compressLines(text, True))
         fh.close()
         exit()
 
@@ -119,12 +140,22 @@ elif converttype == 'lines': #This will be smaller, but still at least image wid
                 #pygame.display.flip()
 
 lastPercent = '0%'
-fh = open(filename.split('.')[0] + '.txt', 'w')
-fh.write(generatedText)
-fh.close()
-input('Image scanning and initial save done. Press enter to optimize and save')
-
-fh = open(filename.split('.')[0] + '.txt', 'w')
-fh.write(compressLines(generatedText, True))
-fh.close()
+compbytes = True
+if not compbytes:
+    fh = open(filename.split('.')[0] + '.txt', 'w')
+    fh.write(generatedText)
+    fh.close()
+    input('Image scanning and initial save done. Press enter to optimize and save')
+    
+    fh = open(filename.split('.')[0] + '.txt', 'w')
+    fh.write(compressLines(generatedText, True))
+    fh.close()
+elif compbytes:
+    fh = open(filename.split('.')[0] + '.gel', 'wb')
+    print('File read. First compression pass...')
+    filebytes = text2bytes(compressLines(generatedText, True), width, height)
+    print('First compression pass complete. LZMA compression starting...')
+    fh.write(lzma.compress(filebytes))
+    print('Compression complete and file written.')
+    fh.close()
 #exit()
