@@ -48,6 +48,13 @@ def compressLines(genText, rle=False):
     return trimtext
 
 def text2bytes(text, width, height):
+    hsize = 2
+    vsize = 2
+    if width < 256:
+        hsize = 1
+    if height < 256:
+        vsize = 1
+    
     finalbytes = bytearray()
     finalbytes += width.to_bytes(2, byteorder='big')
     finalbytes += height.to_bytes(2, byteorder='big')
@@ -63,10 +70,10 @@ def text2bytes(text, width, height):
             finalbytes += (r + g + b)
         if line[0:2] == 'RT':
             finalbytes += b'R'
-            x = int(line.replace('RT', '').replace('x', ',').split(',')[0]).to_bytes(2, byteorder='big')
-            y = int(line.replace('RT', '').replace('x', ',').split(',')[1]).to_bytes(2, byteorder='big')
-            width = int(line.replace('RT', '').replace('x', ',').split(',')[2]).to_bytes(2, byteorder='big')
-            height = int(line.replace('RT', '').replace('x', ',').split(',')[3]).to_bytes(2, byteorder='big')
+            x = int(line.replace('RT', '').replace('x', ',').split(',')[0]).to_bytes(hsize, byteorder='big')
+            y = int(line.replace('RT', '').replace('x', ',').split(',')[1]).to_bytes(vsize, byteorder='big')
+            width = int(line.replace('RT', '').replace('x', ',').split(',')[2]).to_bytes(hsize, byteorder='big')
+            height = int(line.replace('RT', '').replace('x', ',').split(',')[3]).to_bytes(vsize, byteorder='big')
             finalbytes += (x + y + width + height)
     return finalbytes
 

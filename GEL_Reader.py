@@ -21,6 +21,12 @@ br = ByteReader(file)
 
 winwidth = int.from_bytes(br.read(2), byteorder='big')
 winheight = int.from_bytes(br.read(2), byteorder='big')
+hsize = 2
+vsize = 2
+if winwidth < 256:
+  hsize = 1
+if winheight < 256:
+  vsize = 1
 screen = pygame.display.set_mode((winwidth, winheight))
 pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(0, 0, winwidth, winheight))
 done = False
@@ -40,10 +46,10 @@ while not done:
         color = (r, g, b)
         #pygame.display.flip()
     elif cmd == b'R':
-        x = int.from_bytes(br.read(2), byteorder='big')
-        y = int.from_bytes(br.read(2), byteorder='big')
-        width = int.from_bytes(br.read(2), byteorder='big')
-        height = int.from_bytes(br.read(2), byteorder='big')
+        x = int.from_bytes(br.read(hsize), byteorder='big')
+        y = int.from_bytes(br.read(vsize), byteorder='big')
+        width = int.from_bytes(br.read(hsize), byteorder='big')
+        height = int.from_bytes(br.read(vsize), byteorder='big')
         pygame.draw.rect(screen, color, pygame.Rect(x, y, width, height))
     #pygame.event.
 done = False
