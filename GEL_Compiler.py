@@ -21,6 +21,9 @@ elif filename.split('.')[1] == "zip":
   text = fh.read()
   archive.close()
   textlines = text.decode("utf-8").split("\r\n")
+elif filename.split('.')[1] == "gel":
+  input("ERROR: Legacy compiler not compatible with GEL files. Please use GEL_Reader")
+  exit()
 
 currentColor = pygame.Color(255, 255, 255)
 
@@ -254,7 +257,6 @@ def colorCompileText(argtextlines, rle=False):
       if not bool(config['FASTMODE']):
         pygame.display.flip()
     count += 1
-
 def featureCompileText(argtextlines):
   savedLines = {}
   featureName = 'TESTFEATURE'
