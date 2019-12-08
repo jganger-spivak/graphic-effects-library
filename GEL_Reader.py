@@ -16,6 +16,7 @@ class ByteReader:
         return returnbytes
 
 filename = input("Please enter filename: ")
+filetype = filename.split('.')[1]
 file = open(filename, mode='rb')
 br = ByteReader(file)
 
@@ -48,10 +49,13 @@ while not done:
     elif cmd == b'R':
         x = int.from_bytes(br.read(hsize), byteorder='big')
         y = int.from_bytes(br.read(vsize), byteorder='big')
-        width = int.from_bytes(br.read(hsize), byteorder='big')
-        height = int.from_bytes(br.read(vsize), byteorder='big')
-        pygame.draw.rect(screen, color, pygame.Rect(x, y, width, height))
-    #pygame.event.
+        if filetype == 'gel':
+            width = int.from_bytes(br.read(hsize), byteorder='big')
+            height = int.from_bytes(br.read(vsize), byteorder='big')
+            pygame.draw.rect(screen, color, pygame.Rect(x, y, width, height))
+        elif filetype == 'glp':
+            pygame.draw.rect(screen, color, pygame.Rect(x, y, 1, 1))
+    #pygame.event.get()
 done = False
 while not done:
     for event in pygame.event.get():

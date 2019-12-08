@@ -72,14 +72,20 @@ def text2bytes(text, width, height):
             finalbytes += b'R'
             x = int(line.replace('RT', '').replace('x', ',').split(',')[0]).to_bytes(hsize, byteorder='big')
             y = int(line.replace('RT', '').replace('x', ',').split(',')[1]).to_bytes(vsize, byteorder='big')
-            width = int(line.replace('RT', '').replace('x', ',').split(',')[2]).to_bytes(hsize, byteorder='big')
-            height = int(line.replace('RT', '').replace('x', ',').split(',')[3]).to_bytes(vsize, byteorder='big')
-            finalbytes += (x + y + width + height)
+            if converttype == 'lines':
+                width = int(line.replace('RT', '').replace('x', ',').split(',')[2]).to_bytes(hsize, byteorder='big')
+                height = int(line.replace('RT', '').replace('x', ',').split(',')[3]).to_bytes(vsize, byteorder='big')
+                finalbytes += (x + y + width + height)
+            else:
+                finalbytes += (x + y)
     return finalbytes
 
-converttype = 'lines'
+
 pygame.init()
 filename = input("Enter filename: ")
+converttype = 'lines'
+if input("Is this a photograph? Y/N: ").upper() == 'Y':
+    converttype = 'all'
 lastPercent = '0%'
 if filename.split('.')[1] == 'txt':
     if input('Text file selected. Would you like to compress? Press ENTER to cancel').upper() == 'Y':
@@ -113,11 +119,15 @@ def getRGBfromI(RGBint):
 
 if converttype == 'all': #This will probably make a MASSIVE file! 
     for column in range(0, len(pixels)):
+        if not str((column/width)*100).split('.')[0] + '%' == lastPercent:
+            lastPercent = str((column/width)*100).split('.')[0] + '%'
+            print(lastPercent)
         for row in range(0, len(pixels[column])):
             generatedText += "RGB: " + str(getRGBfromI(pixels[column][row])).replace("(", "").replace(")", "") + "\n"
-            generatedText += "RECT: (" + str(column) + ", " + str(row) + ", 1x1)" + "\n"
+            generatedText += "RECT: (" + str(column) + ", " + str(row) + ")" + "\n"
             pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(column, row, 1, 1))
-            pygame.display.flip()
+        pygame.event.get()
+        pygame.display.flip()
 elif converttype == 'lines': #This will be smaller, but still at least image width in number of lines
     currentColor = (255, 255, 255)
     currentHeight = 1
@@ -158,7 +168,10 @@ if not compbytes:
     fh.write(compressLines(generatedText, True))
     fh.close()
 elif compbytes:
-    fh = open(filename.split('.')[0] + '.gel', 'wb')
+    if converttype == "lines":
+        fh = open(filename.split('.')[0] + '.gel', 'wb')
+    elif converttype == 'all':
+        fh = open(filename.split('.')[0] + '.glp', 'wb')
     print('File read. First compression pass...')
     filebytes = text2bytes(compressLines(generatedText, True), width, height)
     print('First compression pass complete. LZMA compression starting...')
