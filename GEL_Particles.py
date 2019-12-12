@@ -1,17 +1,28 @@
 import pygame
 from RenderObject import RenderObject
+from ByteReader import ByteReader
 pygame.init()
 
 filename = input("Enter filename:")
-scalar = float(input("Enter scalar value, or one for no scaling"))
+scalar = int(input("Enter scalar value, or one for no scaling"))
 
-fh = open(filename, 'r')
-text = fh.read()
+fh = open(filename, 'rb')
+br = ByteReader(fh)
 fh.close()
-textlines = text.split("\n")
 particleList = []
 mouseFollow = False
-currentColor = pygame.Color(255, 255, 255)
+
+filetype = filename.split('.')[1]
+COLORBYTE = (245).to_bytes(1, byteorder='big')
+winwidth = int.from_bytes(br.read(2), byteorder='big')
+winheight = int.from_bytes(br.read(2), byteorder='big')
+screen = pygame.display.set_mode((winwidth*scalar, winheight*scalar))
+hsize = 2
+vsize = 2
+if winwidth < 240:
+  hsize = 1
+if winheight < 240:
+  vsize = 1
 
 class Particle(RenderObject):
     def __init__(self, tex):
@@ -30,40 +41,34 @@ class Particle(RenderObject):
             mx = mxy[0]
             my = mxy[1]
             self.push((mx - self.x) / 1000, (my - self.y) / 1000)
-def particleLine(line):
-    if not line == "":
-      if line[0:5] == "SIZE:":
-        datavals = line.replace("SIZE:", "").replace(" ", "").split(",")
-        width = int(datavals[0]) * scalar
-        height = int(datavals[1]) * scalar
-        global screen
-        screen = pygame.display.set_mode((int(width), int(height)))
-        pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(0, 0, screen.get_width(), screen.get_height()))
-      elif line[0:4] == "RGB:":
-        datavals = line.replace(" ", "").replace("RGB:", "").split(",")
-        currentColor.r = int(datavals[0])
-        currentColor.g = int(datavals[1])
-        currentColor.b = int(datavals[2])
-      elif line[0:5] == "RGBA:":
-        datavals = line.replace(" ", "").replace("RGBA:", "").split(",")
-        currentColor.r = int(datavals[0])
-        currentColor.g = int(datavals[1])
-        currentColor.b = int(datavals[2])
-        currentColor.a = int(datavals[3])
-      elif line[0:5] == "RECT:":
-        cleanline = line.replace("(", "").replace(")", "").replace(" ", "").replace("x", ",").replace("RECT:", "")
-        datavals = cleanline.split(",")
-        x = int(datavals[0])
-        y = int(datavals[1])
-        width = int(datavals[2])
-        height = int(datavals[3])
-        particleList.append([pygame.Rect(x*scalar, y*scalar, width*scalar, height*scalar), pygame.Color(currentColor.r, currentColor.g, currentColor.b, currentColor.a)])
+def particleBytes(br, scalar):
+    color = (255, 255, 255)
+    done = False
+    while not done:
+        cmd = br.peek(1)
+        if len(cmd) == 0:
+            fh.close()
+            done = True
+            continue
+        if cmd == COLORBYTE:
+            br.read(1)
+            r = int.from_bytes(br.read(1), byteorder='big')
+            g = int.from_bytes(br.read(1), byteorder='big')
+            b = int.from_bytes(br.read(1), byteorder='big')
+            color = (r, g, b)
+            #pygame.display.flip()
+        elif cmd < COLORBYTE:
+            x = int.from_bytes(br.read(hsize), byteorder='big')
+            y = int.from_bytes(br.read(vsize), byteorder='big')
+            if filetype == 'gel':
+                width = int.from_bytes(br.read(hsize), byteorder='big')
+                height = int.from_bytes(br.read(vsize), byteorder='big')
+                particleList.append([pygame.Rect(x*scalar, y*scalar, width*scalar, height*scalar), pygame.Color(r, g, b)])
+            elif filetype == 'glp':
+                particleList.append([pygame.Rect(x*scalar, y*scalar, scalar, scalar), pygame.Color(r, g, b)])
+   
 
-
-for i in range(0, len(textlines)):
-  pygame.event.get()
-  line = textlines[i]
-  particleLine(line)
+particleBytes(br, scalar)
 
 renderList = []
 for rect in particleList:

@@ -50,26 +50,27 @@ def compressLines(genText, rle=False):
 def text2bytes(text, width, height):
     hsize = 2
     vsize = 2
-    if width < 256:
+    if width < 240:
         hsize = 1
-    if height < 256:
+    if height < 240:
         vsize = 1
     
     finalbytes = bytearray()
     finalbytes += width.to_bytes(2, byteorder='big')
     finalbytes += height.to_bytes(2, byteorder='big')
-
+    COLORBYTE = (245).to_bytes(1, byteorder='big')
+    
     for line in text.split("\n"):
         if len(line) == 0:
             continue
         if line[0] == 'C':
-            finalbytes += b'C'
+            finalbytes += COLORBYTE #Color value. Also conveniently over 32,768 on 16bit int
             r = int(line.replace('C', '').split(',')[0]).to_bytes(1, byteorder='big')
             g = int(line.replace('C', '').split(',')[1]).to_bytes(1, byteorder='big')
             b = int(line.replace('C', '').split(',')[2]).to_bytes(1, byteorder='big')
             finalbytes += (r + g + b)
         if line[0:2] == 'RT':
-            finalbytes += b'R'
+            #finalbytes += b'R'
             x = int(line.replace('RT', '').replace('x', ',').split(',')[0]).to_bytes(hsize, byteorder='big')
             y = int(line.replace('RT', '').replace('x', ',').split(',')[1]).to_bytes(vsize, byteorder='big')
             if converttype == 'lines':
@@ -93,6 +94,9 @@ if filename.split('.')[1] == 'txt':
         text = fh.read()
         print('File read')
         width = int(text.split('\n')[0].replace('SIZE:', '').split(',')[0])
+        if width > 32768:
+            input("ERROR: Please use a smaller image...")
+            exit()
         height = int(text.split('\n')[0].replace('SIZE:', '').split(',')[1])
         fh.close()
         fh = open('_' + filename.split('.')[0] + '.txt', 'w')
