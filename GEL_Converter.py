@@ -74,9 +74,9 @@ def text2bytes(text, width, height):
             x = int(line.replace('RT', '').replace('x', ',').split(',')[0]).to_bytes(hsize, byteorder='big')
             y = int(line.replace('RT', '').replace('x', ',').split(',')[1]).to_bytes(vsize, byteorder='big')
             if converttype == 'lines':
-                width = int(line.replace('RT', '').replace('x', ',').split(',')[2]).to_bytes(hsize, byteorder='big')
+                #width = int(line.replace('RT', '').replace('x', ',').split(',')[2]).to_bytes(hsize, byteorder='big')
                 height = int(line.replace('RT', '').replace('x', ',').split(',')[3]).to_bytes(vsize, byteorder='big')
-                finalbytes += (x + y + width + height)
+                finalbytes += (x + y + height)
             else:
                 finalbytes += (x + y)
     return finalbytes

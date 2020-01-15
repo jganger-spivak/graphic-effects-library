@@ -61,9 +61,9 @@ def particleBytes(br, scalar):
             x = int.from_bytes(br.read(hsize), byteorder='big')
             y = int.from_bytes(br.read(vsize), byteorder='big')
             if filetype == 'gel':
-                width = int.from_bytes(br.read(hsize), byteorder='big')
+                #width = int.from_bytes(br.read(hsize), byteorder='big')
                 height = int.from_bytes(br.read(vsize), byteorder='big')
-                particleList.append([pygame.Rect(x*scalar, y*scalar, width*scalar, height*scalar), pygame.Color(r, g, b)])
+                particleList.append([pygame.Rect(x*scalar, y*scalar, scalar, height*scalar), pygame.Color(r, g, b)])
             elif filetype == 'glp':
                 particleList.append([pygame.Rect(x*scalar, y*scalar, scalar, scalar), pygame.Color(r, g, b)])
    

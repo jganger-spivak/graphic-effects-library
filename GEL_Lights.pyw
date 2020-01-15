@@ -30,7 +30,7 @@ if __name__ == "__main__":
     basesurf = pygame.Surface((80, 80))
     pygame.draw.rect(basesurf, (0, 0, 0), (0, 0, 80, 80))
     
-    basesurf.blit(pygame.transform.scale(pygame.image.load('bush_gel.png').convert(), (basesurf.get_width(), basesurf.get_height())), (0, 0))
+    basesurf.blit(pygame.transform.scale(pygame.image.load('lonk_gel.png').convert(), (basesurf.get_width(), basesurf.get_height())), (0, 0))
     pos = pygame.Vector2(4, 4)
     brightmult = 13
     maxdist = 20
